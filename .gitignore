@@ -1,0 +1,71 @@
+# OS and editor state
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+.nova/
+*.swp
+*.swo
+*.bak
+*~
+
+# Local environment and secrets
+.env
+.env.*
+*.env
+*.key
+*.pem
+*.p12
+*.pfx
+!.env.example
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.py[oc]
+*$py.class
+
+# Test, coverage, type-check, and lint caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyre/
+.pytype/
+.tox/
+.nox/
+.cache/
+.ipynb_checkpoints/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.cover
+*.py,cover
+
+# Build and package artifacts
+build/
+dist/
+wheels/
+*.egg-info/
+*.egg-info
+*.egg
+*.whl
+.eggs/
+pip-wheel-metadata/
+MANIFEST
+
+# Documentation builds
+docs/build/
+site/
+
+# uv local cache
+.uv-cache/
