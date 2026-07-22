@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "wdi-experiments"
+version = "0.1.0"
+description = "A Python package."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "Eiichi YAMAMOTO", email = "info@yeiichi.com" }
+]
+dependencies = [
+    "watchdog>=6.0.0",
+]
+
+[project.scripts]
+wdi-experiments = "wdi_experiments.cli:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.5",
+  "streamlit>=1.36",
+  "sphinx>=7.0",
+  "furo>=2024.8.6",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wdi_experiments"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
