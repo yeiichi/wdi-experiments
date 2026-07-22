@@ -6,9 +6,10 @@ Streamlit App
 mainly for checking that the package, data fetching, and visualization flow are
 working end to end.
 
-For serious research, citation, bulk downloads, metadata review, and more
-complete indicator discovery, use the official `World Development Indicators
-DataBank <https://databank.worldbank.org/source/world-development-indicators>`_.
+The GUI displays a disclaimer that it is for experimental purposes. For serious
+research, citation, bulk downloads, metadata review, and more complete
+indicator discovery, use the official `World Development Indicators DataBank
+<https://databank.worldbank.org/source/world-development-indicators>`_.
 
 Run Locally
 -----------
@@ -45,6 +46,10 @@ Interactive chart
 
 Data table
    Expand the data section to inspect the fetched values.
+
+References
+   Expand the references section for links to the official WDI DataBank and
+   World Bank API documentation.
 
 Caching
 -------

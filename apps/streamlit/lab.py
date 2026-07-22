@@ -303,6 +303,19 @@ def value_axis_title(chart_result: ChartResult) -> str:
 
 
 st.title("WDI Explorer")
+st.warning(
+    "This app is for experimental purposes. For serious research, citation, "
+    "bulk downloads, or metadata review, use the official World Development "
+    "Indicators DataBank."
+)
+
+with st.expander("References", expanded=False):
+    st.markdown(
+        """
+        - [World Development Indicators DataBank](https://databank.worldbank.org/source/world-development-indicators)
+        - [World Bank API developer information](https://datahelpdesk.worldbank.org/knowledgebase/topics/125589-developer-information)
+        """
+    )
 
 country_options = dict(sorted(COUNTRIES.items()))
 default_countries = [

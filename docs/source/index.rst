@@ -10,11 +10,13 @@ GDP, and GDP per capita. It normalizes ISO 3166 alpha-3 country codes, fetches
 JSON data from the World Bank API, and returns compact dictionaries that are
 easy to serialize or chart.
 
-The package and app fetch data from the World Bank WDI API. For technical API
-details, see the `World Bank developer information
+The package and app fetch data from the World Bank WDI API. The Streamlit app
+is for experimental purposes. For technical API details, see the `World Bank
+API developer information
 <https://datahelpdesk.worldbank.org/knowledgebase/topics/125589-developer-information>`_.
-For serious research workflows, use the official `World Development Indicators
-DataBank <https://databank.worldbank.org/source/world-development-indicators>`_.
+For serious research, citation, bulk downloads, or metadata review, use the
+official `World Development Indicators DataBank
+<https://databank.worldbank.org/source/world-development-indicators>`_.
 
 Main Surfaces
 -------------
