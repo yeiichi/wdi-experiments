@@ -67,7 +67,19 @@ uv run sphinx-build -b html docs/source docs/build/html
 
 ```bash
 docker build -t wdi-experiments .
+docker run --rm -p 8080:8080 wdi-experiments
 ```
+
+The image runs the Streamlit laboratory by default:
+
+```bash
+uv run --no-sync streamlit run apps/streamlit/lab.py
+```
+
+The `--no-sync` flag uses the dependencies baked into the image instead of
+syncing them again on startup. The container binds Streamlit to `0.0.0.0` and
+uses the `PORT` environment variable when present, which is required by Cloud
+Run. Locally it defaults to port `8080`.
 
 ## GitHub Automation
 

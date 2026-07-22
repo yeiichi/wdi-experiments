@@ -19,10 +19,11 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 wdi = importlib.import_module("wdi_experiments.main")
+wdi_client = importlib.import_module("wdi_experiments.wdi_client")
 
 
 ONE_MONTH_SECONDS = 30 * 24 * 60 * 60
-WDI_TIMEOUT_SECONDS = 12
+WDI_TIMEOUT_SECONDS = wdi_client.DEFAULT_TIMEOUT_SECONDS
 DISK_CACHE_PATH = ROOT / ".cache" / "streamlit-wdi" / "data.json"
 
 COUNTRIES = {
@@ -136,10 +137,10 @@ def load_indicator_batch(
         return cached_batch.results
 
     indicator = INDICATORS[indicator_label]
-    fetched_results = indicator.fetch_many(
+    fetched_results = fetch_indicator_with_retry(
+        indicator,
         missing_iso3_codes,
         years=years,
-        timeout=WDI_TIMEOUT_SECONDS,
     )
     write_cached_results(
         indicator_label,
@@ -148,6 +149,28 @@ def load_indicator_batch(
         fetched_results,
     )
     return cached_batch.results | fetched_results
+
+
+def fetch_indicator_with_retry(
+    indicator: IndicatorOption,
+    iso3_codes: list[str],
+    *,
+    years: int,
+) -> dict[str, dict[str, Any]]:
+    try:
+        return indicator.fetch_many(
+            iso3_codes,
+            years=years,
+            timeout=WDI_TIMEOUT_SECONDS,
+        )
+    except indicator.error_type as exc:
+        if "timed out" not in str(exc).lower():
+            raise
+        return indicator.fetch_many(
+            iso3_codes,
+            years=years,
+            timeout=WDI_TIMEOUT_SECONDS,
+        )
 
 
 def read_disk_cache() -> dict[str, Any]:
@@ -198,9 +221,6 @@ def read_cached_batch(
             continue
         if now - fetched_at > ONE_MONTH_SECONDS:
             continue
-        if data is None:
-            cached_iso3_codes.add(country_iso3)
-            continue
         if not isinstance(data, dict):
             continue
 
@@ -222,9 +242,11 @@ def write_cached_results(
     cache = read_disk_cache()
     fetched_at = time.time()
     for country_iso3 in country_iso3_codes:
+        if country_iso3 not in results:
+            continue
         cache[cache_key(indicator_label, years, country_iso3)] = {
             "fetched_at": fetched_at,
-            "data": results.get(country_iso3),
+            "data": results[country_iso3],
         }
     write_disk_cache(cache)
 
