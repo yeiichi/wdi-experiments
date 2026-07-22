@@ -3,9 +3,8 @@ from urllib.error import HTTPError, URLError
 
 import pytest
 
-from wdi_experiments import indicators
 from wdi_experiments import cli as app
-from wdi_experiments import wdi_client
+from wdi_experiments import indicators, wdi_client
 
 
 def test_get_population_data_returns_recent_sorted_values(monkeypatch) -> None:

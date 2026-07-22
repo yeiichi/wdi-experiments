@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -121,7 +121,7 @@ def format_world_bank_error(message: Any) -> str:
 
 
 def year_range_for_recent_values(years: int) -> tuple[int, int]:
-    end_year = datetime.now(timezone.utc).year
+    end_year = datetime.now(UTC).year
     start_year = end_year - years
     return start_year, end_year
 
