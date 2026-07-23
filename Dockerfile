@@ -12,7 +12,7 @@ COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY src ./src
 COPY apps ./apps
 
-RUN uv sync --locked --group dev --no-editable --no-cache
+RUN uv sync --locked --no-dev --no-editable --no-cache
 
 EXPOSE 8080
 

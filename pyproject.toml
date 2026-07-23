@@ -14,6 +14,7 @@ authors = [
 ]
 dependencies = [
     "watchdog>=6.0.0",
+    "streamlit>=1.36",
 ]
 
 [project.scripts]
@@ -23,7 +24,6 @@ wdi-experiments = "wdi_experiments.cli:main"
 dev = [
   "pytest>=8.0",
   "ruff>=0.5",
-  "streamlit>=1.36",
   "sphinx>=7.0",
   "furo>=2024.8.6",
 ]

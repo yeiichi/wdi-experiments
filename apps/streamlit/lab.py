@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import importlib
 import json
 import sys
@@ -26,48 +27,26 @@ ONE_MONTH_SECONDS = 30 * 24 * 60 * 60
 WDI_TIMEOUT_SECONDS = wdi_client.DEFAULT_TIMEOUT_SECONDS
 DISK_CACHE_PATH = ROOT / ".cache" / "streamlit-wdi" / "data.json"
 
-COUNTRIES = {
-    "Argentina": "ARG",
-    "Australia": "AUS",
-    "Austria": "AUT",
-    "Bangladesh": "BGD",
-    "Belgium": "BEL",
-    "Brazil": "BRA",
-    "Canada": "CAN",
-    "Chile": "CHL",
-    "China": "CHN",
-    "Colombia": "COL",
-    "Denmark": "DNK",
-    "Egypt, Arab Rep.": "EGY",
-    "Finland": "FIN",
-    "France": "FRA",
-    "Germany": "DEU",
-    "Greece": "GRC",
-    "India": "IND",
-    "Indonesia": "IDN",
-    "Italy": "ITA",
-    "Japan": "JPN",
-    "Kenya": "KEN",
-    "Korea, Rep.": "KOR",
-    "Mexico": "MEX",
-    "Netherlands": "NLD",
-    "Nigeria": "NGA",
-    "Norway": "NOR",
-    "Pakistan": "PAK",
-    "Philippines": "PHL",
-    "Poland": "POL",
-    "Russian Federation": "RUS",
-    "Saudi Arabia": "SAU",
-    "South Africa": "ZAF",
-    "Spain": "ESP",
-    "Sweden": "SWE",
-    "Switzerland": "CHE",
-    "Thailand": "THA",
-    "Turkiye": "TUR",
-    "United Kingdom": "GBR",
-    "United States": "USA",
-    "Vietnam": "VNM",
-}
+COUNTRY_REGION_CODES_PATH = ROOT / "apps" / "streamlit" / "wdi_country_region_code.csv"
+
+
+def load_countries(path: Path = COUNTRY_REGION_CODES_PATH) -> dict[str, str]:
+    with path.open(encoding="utf-8-sig", newline="") as country_file:
+        rows = list(csv.DictReader(country_file))
+
+    countries: dict[str, str] = {}
+    for row in rows:
+        code = row.get("country_region_code", "").strip().upper()
+        label = row.get("short_name_wdi", "").strip()
+        if not code or not label:
+            continue
+
+        countries[label] = code
+
+    return countries
+
+
+COUNTRIES = load_countries()
 
 
 @dataclass(frozen=True)
@@ -327,8 +306,7 @@ def value_axis_title(chart_result: ChartResult) -> str:
 st.title("WDI Explorer")
 st.warning(
     "This app is for experimental purposes. For serious research, citation, "
-    "bulk downloads, or metadata review, use the official World Development "
-    "Indicators DataBank."
+    "please use the official World Development Indicators DataBank."
 )
 
 with st.expander("References", expanded=False):
@@ -336,6 +314,8 @@ with st.expander("References", expanded=False):
         """
         - [World Development Indicators DataBank](https://databank.worldbank.org/source/world-development-indicators)
         - [World Bank API developer information](https://datahelpdesk.worldbank.org/knowledgebase/topics/125589-developer-information)
+
+        [![GitHub repository](https://img.shields.io/badge/GitHub-yeiichi%2Fwdi--experiments-24292f?logo=github&logoColor=white)](https://github.com/yeiichi/wdi-experiments)
         """
     )
 
@@ -356,7 +336,7 @@ with st.form("wdi-query"):
         )
     with controls[1]:
         selected_countries = st.multiselect(
-            "Countries",
+            "Countries/Regions",
             options=list(country_options),
             default=default_countries[:2],
         )
