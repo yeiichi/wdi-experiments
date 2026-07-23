@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy to Cloud Run
 
 on:
   push:
@@ -7,37 +7,44 @@ on:
 
 permissions:
   contents: read
+  id-token: write                        # Required for keyless Workload Identity authentication
 
 env:
-  PROJECT_ID: ${{ vars.PROJECT_ID }}
-  REGION: ${{ vars.REGION }}
-  GAR_REPO: ${{ vars.GAR_REPO }}
-  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+  PROJECT_ID: 'argon-demos-prod'
+  REGION: 'asia-northeast1'
+  GAR_REPO: 'demo-apps'
+  SERVICE_NAME: 'wdi-experiments'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
+      # 1. Authenticate using Workload Identity Federation (Keyless)
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          workload_identity_provider: 'projects/975897523932/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'gha-deployer@argon-demos-prod.iam.gserviceaccount.com'
 
+      # 2. Configure Docker
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
+      # 3. Build & Push Image
       - name: Build and push image
         run: |
           IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
           docker build -t "$IMAGE" .
           docker push "$IMAGE"
 
+      # 4. Deploy to Cloud Run
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
