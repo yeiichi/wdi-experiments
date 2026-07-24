@@ -20,6 +20,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 wdi = importlib.import_module("wdi_experiments.main")
+wdi_indicators = importlib.import_module("wdi_experiments.indicators")
 wdi_client = importlib.import_module("wdi_experiments.wdi_client")
 
 
@@ -52,6 +53,7 @@ COUNTRIES = load_countries()
 @dataclass(frozen=True)
 class IndicatorOption:
     label: str
+    indicator_id: str
     value_key: str
     fetch_many: Callable[..., dict[str, dict[str, Any]]]
     error_type: type[Exception]
@@ -62,6 +64,7 @@ class ChartResult:
     data: pd.DataFrame
     errors: list[str]
     indicator_name: str
+    indicator_id: str
     unit: str
 
 
@@ -74,18 +77,21 @@ class CachedBatch:
 INDICATORS = {
     "Population": IndicatorOption(
         label="Population",
+        indicator_id=wdi_indicators.POPULATION_INDICATOR_ID,
         value_key="population",
         fetch_many=wdi.get_population_data_many,
         error_type=wdi.PopulationDataError,
     ),
     "GDP": IndicatorOption(
         label="GDP",
+        indicator_id=wdi_indicators.GDP_INDICATOR_ID,
         value_key="gdp",
         fetch_many=wdi.get_gdp_data_many,
         error_type=wdi.GdpDataError,
     ),
     "GDP per capita": IndicatorOption(
         label="GDP per capita",
+        indicator_id=wdi_indicators.GDP_PER_CAPITA_INDICATOR_ID,
         value_key="gdp_per_capita",
         fetch_many=wdi.get_gdp_per_capita_data_many,
         error_type=wdi.GdpPerCapitaDataError,
@@ -241,7 +247,9 @@ def build_chart_data(
         country_name: country_options[country_name]
         for country_name in selected_countries
     }
-    empty_data = pd.DataFrame(columns=["year", "country", "value"])
+    empty_data = pd.DataFrame(
+        columns=["year", "country", "indicator_id", "indicator_name", "value"]
+    )
 
     try:
         results = load_indicator_batch(
@@ -254,12 +262,14 @@ def build_chart_data(
             data=empty_data,
             errors=[str(exc)],
             indicator_name=indicator.label,
+            indicator_id=indicator.indicator_id,
             unit="",
         )
 
     frames: list[pd.DataFrame] = []
     errors: list[str] = []
     indicator_name = indicator.label
+    indicator_id = indicator.indicator_id
     unit = ""
 
     for country_name, country_iso3 in iso3_by_name.items():
@@ -277,8 +287,13 @@ def build_chart_data(
 
         frame = frame.rename(columns={indicator.value_key: "value"})
         frame["country"] = country_name
-        frames.append(frame[["year", "country", "value"]])
         indicator_name = str(result.get("indicator_name") or indicator.label)
+        indicator_id = str(result.get("indicator") or indicator.indicator_id)
+        frame["indicator_id"] = indicator_id
+        frame["indicator_name"] = indicator_name
+        frames.append(
+            frame[["year", "country", "indicator_id", "indicator_name", "value"]]
+        )
         unit = str(result.get("unit") or unit)
 
     if not frames:
@@ -286,6 +301,7 @@ def build_chart_data(
             data=empty_data,
             errors=errors,
             indicator_name=indicator_name,
+            indicator_id=indicator_id,
             unit=unit,
         )
 
@@ -293,6 +309,7 @@ def build_chart_data(
         data=pd.concat(frames, ignore_index=True),
         errors=errors,
         indicator_name=indicator_name,
+        indicator_id=indicator_id,
         unit=unit,
     )
 
@@ -338,6 +355,9 @@ with st.form("wdi-query"):
             "Indicator",
             options=list(INDICATORS),
             index=0,
+            format_func=lambda label: (
+                f"{INDICATORS[label].label} ({INDICATORS[label].indicator_id})"
+            ),
         )
     with controls[1]:
         selected_countries = st.multiselect(
@@ -405,8 +425,16 @@ chart = (
 
 st.altair_chart(chart, width="stretch")
 
+st.caption(f"Indicator ID: `{chart_result.indicator_id}`")
+
 with st.expander("Data", expanded=False):
     display_data = chart_data.rename(
         columns={"value": chart_result.indicator_name}
     ).sort_values(["country", "year"])
     st.dataframe(display_data.reset_index(drop=True), width="stretch", hide_index=True)
+    st.download_button(
+        "Download CSV",
+        data=display_data.to_csv(index=False).encode("utf-8"),
+        file_name=f"wdi-{chart_result.indicator_id.lower()}-{int(years)}y.csv",
+        mime="text/csv",
+    )
