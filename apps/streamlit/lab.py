@@ -303,7 +303,12 @@ def value_axis_title(chart_result: ChartResult) -> str:
     return f"{chart_result.indicator_name} ({chart_result.unit})"
 
 
-st.title("WDI Explorer")
+header = st.columns([1, 0.25])
+with header[0]:
+    st.title("WDI Explorer")
+with header[1]:
+    st.link_button("Back to yeiichi.com", "https://yeiichi.com")
+
 st.warning(
     "This app is for experimental purposes. For serious research, citation, "
     "please use the official World Development Indicators DataBank."
